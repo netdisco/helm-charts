@@ -1,0 +1,136 @@
+image:
+  repository: netdisco/netdisco
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# -- External PostgreSQL (primary/default)
+db:
+  host: ""
+  port: 5432
+  name: netdisco
+  user: netdisco
+  password: ""
+  # name of an existing Secret with keys: db-password
+  existingSecret: ""
+
+# -- Bundled PostgreSQL for minimal testing only (not for production)
+postgresql:
+  enabled: false
+  image: postgres:16-alpine
+  password: netdisco
+  storage: 5Gi
+  storageClass: ""
+
+# -- Netdisco application config (mounted as deployment.yml)
+netdisco:
+  domain: discover
+  # Additional raw config appended to deployment.yml.
+  # Use this for device_auth, schedule overrides, metrics settings, etc.
+  extraConfig: |
+    #device_auth:
+    #  - tag: default_v2_readonly
+    #    community: public
+    #    read: true
+
+web:
+  replicas: 1
+  port: 5000
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    memory: 512Mi
+
+backend:
+  replicas: 1
+  resources: {}
+
+# -- OpenShift Route (use this on RHOS)
+route:
+  enabled: false
+  host: ""
+  tls:
+    enabled: true
+    termination: edge
+
+# -- Kubernetes Ingress (use this on plain k8s)
+ingress:
+  enabled: false
+  className: ""
+  host: ""
+  tls: []
+  annotations: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+# -- Persistent storage for nd-site-local (custom MIBs, plugins, etc.)
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+  accessMode: ReadWriteMany
+
+# -- Security context
+# RHOS: set runAsUser to null to let OpenShift assign arbitrary UID
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 901
+  runAsGroup: 901
+  fsGroup: 901
+
+# openshift: true will set runAsUser: null and add Route instead of Ingress
+openshift: false
+
+serviceAccount:
+  create: true
+  name: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# -- Vault Agent Injector for DB credentials
+# Requires the Vault Agent Injector to be installed in the cluster.
+# When enabled, DB password is read from the Vault-injected file instead
+# of the k8s Secret. The injected file must render a YAML snippet:
+#   database:
+#     pass: 'the-password'
+vault:
+  enabled: false
+  role: netdisco
+  # KV v2 path to the secret containing the DB password
+  dbPath: "secret/data/netdisco/db"
+  # Key within the secret that holds the password
+  dbPasswordKey: "password"
+
+# -- External Secrets Operator for SNMP device_auth credentials
+# Requires ESO to be installed and a SecretStore/ClusterSecretStore configured.
+# ESO syncs Vault KV -> k8s Secret. The Secret must contain a key
+# 'device_auth.yml' with a valid Netdisco device_auth YAML block.
+# Use the deviceAuthTemplate to render credentials from Vault keys.
+eso:
+  enabled: false
+  secretStoreKind: ClusterSecretStore   # or SecretStore
+  secretStoreName: vault-backend
+  refreshInterval: 1h
+  # Vault KV v2 path containing SNMP credential keys
+  vaultPath: "secret/data/netdisco/snmp"
+  # Template rendered into device_auth.yml inside the k8s Secret.
+  # Reference Vault keys with {{ .keyname }} notation.
+  # See: https://external-secrets.io/latest/guides/templating/
+  deviceAuthTemplate: |
+    device_auth:
+      - tag: default_v2_readonly
+        community: '{{ .snmp_community_ro }}'
+        read: true
+        write: false
+      # SNMPv3 example:
+      # - tag: core_v3
+      #   auth_password: '{{ .core_v3_password }}'
+      #   priv_password: '{{ .core_v3_key }}'
+      #   auth_protocol: SHA
+      #   priv_protocol: AES
+      #   version: 3
