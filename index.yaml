@@ -1,0 +1,27 @@
+apiVersion: v1
+entries:
+  netdisco:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-04-30T11:33:24.200948947+02:00"
+    description: Netdisco - Open Source Network Management
+    digest: ba4a55c633b75475cf826c5526ce87427b9b87bc7bcd03547b57e5ccaeb861a8
+    home: https://netdisco.org
+    keywords:
+    - netdisco
+    - network
+    - snmp
+    - management
+    maintainers:
+    - name: netdisco
+      url: https://github.com/netdisco
+    name: netdisco
+    sources:
+    - https://github.com/netdisco/helm-charts
+    - https://github.com/netdisco/netdisco-docker
+    - https://github.com/netdisco/netdisco
+    type: application
+    urls:
+    - https://github.com/netdisco/helm-charts/releases/download/netdisco-0.1.0/netdisco-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-04-30T11:33:24.193719103+02:00"
