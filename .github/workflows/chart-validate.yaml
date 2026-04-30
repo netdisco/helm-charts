@@ -1,0 +1,52 @@
+name: Validate Helm Chart
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - '.github/workflows/chart-validate.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+      - '.github/workflows/chart-validate.yaml'
+
+jobs:
+  lint-and-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+
+      - uses: helm/chart-testing-action@v2.6.1
+
+      - name: Lint changed charts
+        run: ct lint --target-branch main --all
+
+      - name: Render with each values file
+        run: |
+          set -e
+          for f in charts/netdisco/values*.yaml; do
+            echo "::group::helm template with $f"
+            helm template netdisco charts/netdisco -f "$f" > /dev/null
+            echo "::endgroup::"
+          done
+
+      - name: Install kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate rendered manifests with kubeconform
+        run: |
+          set -e
+          for f in charts/netdisco/values*.yaml; do
+            echo "::group::kubeconform with $f"
+            helm template netdisco charts/netdisco -f "$f" \
+              | kubeconform -strict -ignore-missing-schemas -summary
+            echo "::endgroup::"
+          done
