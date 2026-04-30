@@ -25,16 +25,27 @@ jobs:
       - uses: helm/chart-testing-action@v2.6.1
 
       - name: Lint changed charts
-        run: ct lint --target-branch main --all --validate-maintainers=false
+        run: ct lint --target-branch main --all
 
-      - name: Render with each values file
+      - name: Render chart with each scenario
         run: |
           set -e
-          for f in charts/netdisco/values*.yaml; do
-            echo "::group::helm template with $f"
-            helm template netdisco charts/netdisco -f "$f" > /dev/null
-            echo "::endgroup::"
-          done
+
+          echo "::group::values-test.yaml (bundled postgres)"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-test.yaml > /dev/null
+          echo "::endgroup::"
+
+          echo "::group::values-openshift.yaml (external postgres)"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-openshift.yaml > /dev/null
+          echo "::endgroup::"
+
+          echo "::group::values-openshift.yaml + values-vault-eso.yaml (overlay)"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-openshift.yaml \
+            -f charts/netdisco/values-vault-eso.yaml > /dev/null
+          echo "::endgroup::"
 
       - name: Install kubeconform
         run: |
@@ -44,9 +55,22 @@ jobs:
       - name: Validate rendered manifests with kubeconform
         run: |
           set -e
-          for f in charts/netdisco/values*.yaml; do
-            echo "::group::kubeconform with $f"
-            helm template netdisco charts/netdisco -f "$f" \
-              | kubeconform -strict -ignore-missing-schemas -summary
-            echo "::endgroup::"
-          done
+
+          echo "::group::kubeconform: values-test.yaml"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-test.yaml \
+            | kubeconform -strict -ignore-missing-schemas -summary
+          echo "::endgroup::"
+
+          echo "::group::kubeconform: values-openshift.yaml"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-openshift.yaml \
+            | kubeconform -strict -ignore-missing-schemas -summary
+          echo "::endgroup::"
+
+          echo "::group::kubeconform: openshift + vault-eso overlay"
+          helm template netdisco charts/netdisco \
+            -f charts/netdisco/values-openshift.yaml \
+            -f charts/netdisco/values-vault-eso.yaml \
+            | kubeconform -strict -ignore-missing-schemas -summary
+          echo "::endgroup::"

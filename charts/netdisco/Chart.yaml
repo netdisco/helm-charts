@@ -15,5 +15,5 @@ sources:
   - https://github.com/netdisco/netdisco-docker
   - https://github.com/netdisco/netdisco
 maintainers:
-  - name: The Netdisco Project
+  - name: netdisco
     url: https://github.com/netdisco
