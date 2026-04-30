@@ -1,8 +1,36 @@
 # Netdisco Helm Chart
 
+[![Release](https://img.shields.io/github/v/release/netdisco/helm-charts?label=chart&sort=semver)](https://github.com/netdisco/helm-charts/releases)
+[![Validate Helm Chart](https://github.com/netdisco/helm-charts/actions/workflows/chart-validate.yaml/badge.svg)](https://github.com/netdisco/helm-charts/actions/workflows/chart-validate.yaml)
+[![Release Helm Chart](https://github.com/netdisco/helm-charts/actions/workflows/helm-release.yaml/badge.svg)](https://github.com/netdisco/helm-charts/actions/workflows/helm-release.yaml)
+[![License](https://img.shields.io/github/license/netdisco/helm-charts)](LICENSE)
+
 Helm chart for deploying [Netdisco](https://netdisco.org) on Kubernetes or Red Hat OpenShift (RHOS).
 
 The chart lives under `charts/netdisco/`.
+
+## Install from the chart repository
+
+```bash
+helm repo add netdisco https://netdisco.github.io/helm-charts
+helm repo update
+
+# Quick try-out with the bundled PostgreSQL
+helm install netdisco netdisco/netdisco \
+  --set postgresql.enabled=true
+
+# OpenShift / external PostgreSQL
+helm install netdisco netdisco/netdisco \
+  --set db.host=mypostgres.example.com \
+  --set db.password=secret \
+  --set route.host=netdisco.apps.mycluster.example.com
+```
+
+Show the chart's full default values with:
+
+```bash
+helm show values netdisco/netdisco
+```
 
 ## Prerequisites
 
@@ -10,7 +38,7 @@ The chart lives under `charts/netdisco/`.
 - A PostgreSQL database (external recommended for production)
 - For RHOS: the Vault Agent Injector and/or External Secrets Operator if using credential injection
 
-No local Helm installation is required — all commands below use the official `alpine/helm` Docker image.
+The sections below use the chart from a local checkout (clone this repo first). For production deployments use the chart repository commands above instead.
 
 ## Quick start — local cluster (bundled PostgreSQL)
 
