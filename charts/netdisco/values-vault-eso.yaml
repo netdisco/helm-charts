@@ -37,7 +37,7 @@ eso:
 
       # SNMPv3 authPriv example (keys: snmp_v3_user, snmp_v3_auth, snmp_v3_priv)
       # - tag: default_v3
-      #   username: '{{ .snmp_v3_user }}'
+      #   user: '{{ .snmp_v3_user }}'
       #   auth_password: '{{ .snmp_v3_auth }}'
       #   priv_password: '{{ .snmp_v3_priv }}'
       #   auth_protocol: SHA

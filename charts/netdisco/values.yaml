@@ -148,6 +148,7 @@ eso:
         write: false
       # SNMPv3 example:
       # - tag: core_v3
+      #   user: '{{ .core_v3_user }}'
       #   auth_password: '{{ .core_v3_password }}'
       #   priv_password: '{{ .core_v3_key }}'
       #   auth_protocol: SHA
