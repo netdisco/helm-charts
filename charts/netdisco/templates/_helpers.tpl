@@ -38,6 +38,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- end }}
 
+{{/* True when Vault renders the full DB connection (host/port/name/user/pass) */}}
+{{- define "netdisco.vaultFullCredentials" -}}
+{{- and .Values.vault.enabled .Values.vault.fullCredentials }}
+{{- end }}
+
 {{/* Security context — drop runAsUser on OpenShift */}}
 {{- define "netdisco.securityContext" -}}
 runAsNonRoot: true
@@ -53,10 +58,14 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
 {{- or .Values.vault.enabled .Values.eso.enabled }}
 {{- end }}
 
-{{/* Common env vars — DB password from Secret unless Vault injects it */}}
+{{/* Common env vars — DB connection from Secret/values unless Vault injects it.
+     In fullCredentials mode, NETDISCO_DB_* are omitted entirely; netdisco
+     reads the connection from deployment.yml after the merge init container
+     concatenates the Vault-rendered block. */}}
 {{- define "netdisco.env" -}}
 - name: NETDISCO_DOMAIN
   value: {{ .Values.netdisco.domain | quote }}
+{{- if not (eq (include "netdisco.vaultFullCredentials" .) "true") }}
 - name: NETDISCO_DB_HOST
   value: {{ include "netdisco.dbHost" . | quote }}
 - name: NETDISCO_DB_PORT
@@ -78,6 +87,7 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
       key: db-password
 {{- end }}
 {{- end }}
+{{- end }}
 
 {{/* Vault Agent Injector pod annotations */}}
 {{- define "netdisco.vaultAnnotations" -}}
@@ -88,7 +98,15 @@ vault.hashicorp.com/agent-inject-secret-db-credentials: {{ .Values.vault.dbPath 
 vault.hashicorp.com/agent-inject-template-db-credentials: |
   {{`{{- with secret `}}"{{ .Values.vault.dbPath }}"{{` -}}`}}
   database:
+  {{- if .Values.vault.fullCredentials }}
+    host: '{{`{{ .Data.data.`}}{{ .Values.vault.dbKeys.host }}{{` }}`}}'
+    port: {{`{{ .Data.data.`}}{{ .Values.vault.dbKeys.port }}{{` }}`}}
+    name: '{{`{{ .Data.data.`}}{{ .Values.vault.dbKeys.name }}{{` }}`}}'
+    user: '{{`{{ .Data.data.`}}{{ .Values.vault.dbKeys.user }}{{` }}`}}'
+    pass: '{{`{{ .Data.data.`}}{{ .Values.vault.dbKeys.password }}{{` }}`}}'
+  {{- else }}
     pass: '{{`{{ .Data.data.`}}{{ .Values.vault.dbPasswordKey }}{{` }}`}}'
+  {{- end }}
   {{`{{- end }}`}}
 {{- end }}
 {{- end }}
