@@ -23,9 +23,10 @@ spec:
       serviceAccountName: {{ include "netdisco.serviceAccountName" . }}
       securityContext:
         {{- include "netdisco.securityContext" . | nindent 8 }}
+      {{- if include "netdisco.credentialsEnabled" . }}
       initContainers:
-        {{- include "netdisco.pidfileInitContainer" . | nindent 8 }}
         {{- include "netdisco.initContainer" . | nindent 8 }}
+      {{- end }}
       containers:
         - name: backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-backend"
@@ -34,9 +35,6 @@ spec:
             {{- include "netdisco.env" . | nindent 12 }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
-            - name: pidfile
-              mountPath: /home/netdisco/netdisco-backend.pid
-              subPath: netdisco-backend.pid
           {{- with .Values.backend.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -51,5 +49,3 @@ spec:
       {{- end }}
       volumes:
         {{- include "netdisco.volumes" . | nindent 8 }}
-        - name: pidfile
-          emptyDir: {}

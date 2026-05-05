@@ -111,16 +111,6 @@ vault.hashicorp.com/agent-inject-template-db-credentials: |
 {{- end }}
 {{- end }}
 
-{{/* Init container that pre-creates the backend pidfile (required on read-only rootfs / RHOS) */}}
-{{- define "netdisco.pidfileInitContainer" -}}
-- name: init-pidfile
-  image: alpine:3
-  command: ["sh", "-c", "touch /mnt/pidfile/netdisco-backend.pid && chmod 666 /mnt/pidfile/netdisco-backend.pid"]
-  volumeMounts:
-    - name: pidfile
-      mountPath: /mnt/pidfile
-{{- end }}
-
 {{/* Init container that merges ConfigMap + injected credential files */}}
 {{- define "netdisco.initContainer" -}}
 {{- if include "netdisco.credentialsEnabled" . }}
