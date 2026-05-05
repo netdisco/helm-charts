@@ -6,11 +6,13 @@ metadata:
     {{- include "netdisco.labels" . | nindent 4 }}
 data:
   deployment.yml: |
+    {{- if not (eq (include "netdisco.vaultFullCredentials" .) "true") }}
     database:
       name: '{{ .Values.db.name }}'
       user: '{{ .Values.db.user }}'
       host: '{{ include "netdisco.dbHost" . }}'
       port: {{ .Values.db.port }}
+    {{- end }}
 
     domain_suffix: ['']
     {{- if .Values.netdisco.extraConfig }}
