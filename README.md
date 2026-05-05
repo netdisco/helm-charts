@@ -69,6 +69,18 @@ helm install netdisco ./charts/netdisco \
 
 Edit `values-vault-eso.yaml` to set your Vault KV paths and adjust the `deviceAuthTemplate` to match your SNMP credential structure.
 
+By default Vault Agent injects only the DB password and `db.host`/`db.user`/`db.name` are taken from values. If your Vault binding returns the full connection payload (host/port/database/user/password as JSON), set `vault.fullCredentials=true` to render the entire `database:` block from Vault and skip the static fields:
+
+```bash
+helm install netdisco ./charts/netdisco \
+  -f charts/netdisco/values-openshift.yaml \
+  -f charts/netdisco/values-vault-eso.yaml \
+  --set vault.fullCredentials=true \
+  --set vault.dbPath=secret/data/netdisco/db
+```
+
+Override `vault.dbKeys.{host,port,name,user,password}` if your payload uses different JSON key names (defaults: `hostname`, `port`, `database_name`, `username`, `password`).
+
 ## Linting and dry-run (no cluster needed)
 
 ```bash
