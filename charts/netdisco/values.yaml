@@ -94,17 +94,36 @@ affinity: {}
 
 # -- Vault Agent Injector for DB credentials
 # Requires the Vault Agent Injector to be installed in the cluster.
-# When enabled, DB password is read from the Vault-injected file instead
-# of the k8s Secret. The injected file must render a YAML snippet:
+# When enabled, the DB password (or full connection) is rendered from Vault
+# into a YAML snippet that is concatenated onto deployment.yml:
 #   database:
-#     pass: 'the-password'
+#     pass: 'the-password'        # password-only mode (default)
+#   database:                      # fullCredentials: true
+#     host: '...'
+#     port: 5432
+#     name: '...'
+#     user: '...'
+#     pass: '...'
 vault:
   enabled: false
   role: netdisco
-  # KV v2 path to the secret containing the DB password
+  # KV v2 path to the secret
   dbPath: "secret/data/netdisco/db"
-  # Key within the secret that holds the password
+  # Key within the secret that holds the password (password-only mode)
   dbPasswordKey: "password"
+  # When true, the full database block (host/port/name/user/pass) is rendered
+  # from Vault using dbKeys.* below, and .Values.db.* / NETDISCO_DB_* env vars
+  # are not emitted. Use this when your Vault binding returns a JSON payload
+  # with all connection fields (e.g. BIT static-creds bindings).
+  fullCredentials: false
+  # JSON key names within the Vault secret payload (under .Data.data) used in
+  # fullCredentials mode.
+  dbKeys:
+    host: hostname
+    port: port
+    name: database_name
+    user: username
+    password: password
 
 # -- External Secrets Operator for SNMP device_auth credentials
 # Requires ESO to be installed and a SecretStore/ClusterSecretStore configured.
