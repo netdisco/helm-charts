@@ -94,6 +94,7 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
 {{- if .Values.vault.enabled }}
 vault.hashicorp.com/agent-inject: "true"
 vault.hashicorp.com/role: {{ .Values.vault.role | quote }}
+vault.hashicorp.com/agent-init-first: "true"
 vault.hashicorp.com/agent-inject-secret-db-credentials: {{ .Values.vault.dbPath | quote }}
 vault.hashicorp.com/agent-inject-template-db-credentials: |
   {{`{{- with secret `}}"{{ .Values.vault.dbPath }}"{{` -}}`}}

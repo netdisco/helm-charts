@@ -16,6 +16,11 @@ spec:
       labels:
         {{- include "netdisco.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: db-init
+      annotations:
+        {{- include "netdisco.vaultAnnotations" . | nindent 8 }}
+        {{- if .Values.vault.enabled }}
+        vault.hashicorp.com/agent-pre-populate-only: "true"
+        {{- end }}
     spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ include "netdisco.serviceAccountName" . }}
