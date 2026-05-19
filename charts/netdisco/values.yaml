@@ -9,6 +9,7 @@ init:
     repository: alpine
     tag: 3
     pullPolicy: IfNotPresent
+  resources: {}
 
 # -- External PostgreSQL (primary/default)
 db:

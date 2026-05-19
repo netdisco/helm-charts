@@ -139,6 +139,8 @@ vault.hashicorp.com/agent-inject-template-db-credentials: |
       mountPath: /credentials
       readOnly: true
     {{- end }}
+  resources:
+    {{- toYaml .Values.init.resources | nindent 4 }}
 {{- end }}
 {{- end }}
 
