@@ -66,6 +66,7 @@ dbInit:
 route:
   enabled: false
   host: ""
+  path: ""
   tls:
     enabled: true
     termination: edge
