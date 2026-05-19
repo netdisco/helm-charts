@@ -54,6 +54,12 @@ backend:
   replicas: 1
   resources: {}
 
+# -- One-shot db init/migration Job (post-install/post-upgrade hook).
+# Runs netdisco-updatedb.sh against the configured database. Migrations
+# can be memory-hungry, so tune separately from the steady-state backend.
+dbInit:
+  resources: {}
+
 # -- OpenShift Route (use this on RHOS)
 route:
   enabled: false

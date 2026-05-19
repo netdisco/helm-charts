@@ -36,5 +36,7 @@ spec:
             {{- include "netdisco.env" . | nindent 12 }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.dbInit.resources | nindent 12 }}
       volumes:
         {{- include "netdisco.volumes" . | nindent 8 }}
