@@ -43,6 +43,7 @@ netdisco:
 web:
   replicas: 1
   port: 5000
+  env: []
   resources: {}
   #  requests:
   #    cpu: 100m
@@ -52,6 +53,7 @@ web:
 
 backend:
   replicas: 1
+  env: []
   resources: {}
 
 # -- One-shot db init/migration Job (post-install/post-upgrade hook).

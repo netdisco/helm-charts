@@ -33,6 +33,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- include "netdisco.env" . | nindent 12 }}
+            {{- with .Values.backend.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
           {{- with .Values.backend.resources }}

@@ -39,6 +39,9 @@ spec:
             {{- include "netdisco.env" . | nindent 12 }}
             - name: PORT
               value: {{ .Values.web.port | quote }}
+            {{- with .Values.web.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
           livenessProbe:

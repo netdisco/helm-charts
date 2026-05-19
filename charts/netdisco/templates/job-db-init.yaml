@@ -39,6 +39,9 @@ spec:
             - /home/netdisco/bin/netdisco-updatedb.sh
           env:
             {{- include "netdisco.env" . | nindent 12 }}
+            {{- with .Values.backend.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
           resources:
