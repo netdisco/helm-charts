@@ -3,6 +3,13 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# -- Init containers
+init:
+  image:
+    repository: alpine
+    tag: 3
+    pullPolicy: IfNotPresent
+
 # -- External PostgreSQL (primary/default)
 db:
   host: ""

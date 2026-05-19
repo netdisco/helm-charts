@@ -115,7 +115,8 @@ vault.hashicorp.com/agent-inject-template-db-credentials: |
 {{- define "netdisco.initContainer" -}}
 {{- if include "netdisco.credentialsEnabled" . }}
 - name: merge-config
-  image: alpine:3
+  image: "{{ .Values.init.image.repository }}:{{ .Values.init.image.tag }}"
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
   command:
     - sh
     - -c
