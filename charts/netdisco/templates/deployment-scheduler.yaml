@@ -1,21 +1,22 @@
+{{- if .Values.scheduler.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "netdisco.fullname" . }}-backend
+  name: {{ include "netdisco.fullname" . }}-scheduler
   labels:
     {{- include "netdisco.labels" . | nindent 4 }}
-    app.kubernetes.io/component: backend
+    app.kubernetes.io/component: scheduler
 spec:
-  replicas: {{ .Values.backend.replicas }}
+  replicas: {{ .Values.scheduler.replicas }}
   selector:
     matchLabels:
       {{- include "netdisco.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: backend
+      app.kubernetes.io/component: scheduler
   template:
     metadata:
       labels:
         {{- include "netdisco.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: backend
+        app.kubernetes.io/component: scheduler
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- include "netdisco.vaultAnnotations" . | nindent 8 }}
@@ -28,21 +29,19 @@ spec:
         {{- include "netdisco.initContainer" . | nindent 8 }}
       {{- end }}
       containers:
-        - name: backend
+        - name: scheduler
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-backend"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- include "netdisco.env" . | nindent 12 }}
-            {{- if .Values.scheduler.enabled }}
-            - name: NETDISCO_NO_SCHEDULER
-              value: "1"
-            {{- end }}
-            {{- with .Values.backend.env }}
+            - name: NETDISCO_WORKERS_TASKS
+              value: "0"
+            {{- with .Values.scheduler.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
-          {{- with .Values.backend.resources }}
+          {{- with .Values.scheduler.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -56,3 +55,4 @@ spec:
       {{- end }}
       volumes:
         {{- include "netdisco.volumes" . | nindent 8 }}
+{{- end }}

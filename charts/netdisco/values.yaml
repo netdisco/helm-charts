@@ -35,6 +35,7 @@ netdisco:
   # Additional raw config appended to deployment.yml.
   # Use this for device_auth, schedule overrides, metrics settings, etc.
   extraConfig: |
+    logger: console
     #device_auth:
     #  - tag: default_v2_readonly
     #    community: public
@@ -52,6 +53,15 @@ web:
   #    memory: 512Mi
 
 backend:
+  replicas: 1
+  env: []
+  resources: {}
+
+# scheduler: when enabled, a dedicated scheduler-only Deployment is created
+# (tasks=0, no pollers) and the backend Deployment gets NETDISCO_NO_SCHEDULER=1
+# so multiple backend replicas can run safely without duplicate job submissions.
+scheduler:
+  enabled: false
   replicas: 1
   env: []
   resources: {}
