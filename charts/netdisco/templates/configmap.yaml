@@ -14,7 +14,6 @@ data:
       port: {{ .Values.db.port }}
     {{- end }}
 
-    domain_suffix: ['']
     {{- if .Values.netdisco.extraConfig }}
     {{ .Values.netdisco.extraConfig | nindent 4 }}
     {{- end }}

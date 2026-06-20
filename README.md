@@ -113,6 +113,57 @@ Vault/ESO Secret (creds) ────┘
 
 Vault Agent injects DB credentials; ESO syncs SNMP `device_auth` from Vault KV into a k8s Secret.
 
+## Scheduler / worker split for horizontal scaling
+
+By default the backend Deployment runs all three roles in one process: Scheduler (submits jobs on cron), Manager (pulls from PostgreSQL queue), and Poller (executes discovery jobs). Running multiple replicas is unsafe in this mode because every replica's Scheduler submits duplicate jobs every minute.
+
+Enable `scheduler.enabled=true` to split them:
+
+- A dedicated **scheduler** Deployment (1 replica, no pollers) is created
+- The **backend** Deployment receives `NETDISCO_NO_SCHEDULER=1` and can now safely scale to N replicas
+
+```yaml
+scheduler:
+  enabled: true
+  replicas: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 1Gi
+
+backend:
+  replicas: 2   # safe to scale now
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+```
+
+Requires `NETDISCO_NO_SCHEDULER` and `NETDISCO_WORKERS_TASKS` env var support in the netdisco backend binary (available from the `feature-combined` image tag onwards).
+
+### Autoscaling with KEDA
+
+Netdisco exposes `netdisco_jobs{status="queued"}` on the web pod's `/metrics` endpoint. If [KEDA](https://keda.sh) is installed and Prometheus is scraping the web pod, you can drive autoscaling directly from queue depth:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: netdisco-backend
+spec:
+  scaleTargetRef:
+    name: netdisco-backend
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: netdisco_queued_jobs
+        query: netdisco_jobs{status="queued",tenant="netdisco"}
+        threshold: "10"   # one replica per 10 queued jobs
+```
+
 ## See also
 
 - [netdisco/netdisco](https://github.com/netdisco/netdisco) — the main application
