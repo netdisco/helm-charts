@@ -141,9 +141,28 @@ backend:
 
 Requires `NETDISCO_NO_SCHEDULER` and `NETDISCO_WORKERS_TASKS` env var support in the netdisco backend binary (available from the `feature-combined` image tag onwards).
 
-### Autoscaling with KEDA
+### CPU / memory autoscaling (built-in HPA)
 
-Netdisco exposes `netdisco_jobs{status="queued"}` on the web pod's `/metrics` endpoint. If [KEDA](https://keda.sh) is installed and Prometheus is scraping the web pod, you can drive autoscaling directly from queue depth:
+Enable the built-in `autoscaling/v2` HPA to scale the backend on CPU and memory:
+
+```yaml
+backend:
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilization: 80       # % of requested CPU
+    targetMemoryUtilization: 80    # % of requested memory
+    scaleDownStabilizationSeconds: 300  # avoid killing pods mid-job
+```
+
+When `hpa.enabled=true` the `replicas` field is omitted from the Deployment so the HPA has sole ownership of the replica count.
+
+### Autoscaling with KEDA (queue-depth)
+
+Netdisco exposes `netdisco_jobs{status="queued"}` on the web pod's `/metrics` endpoint. If [KEDA](https://keda.sh) is installed and Prometheus is scraping the web pod, you can drive autoscaling directly from queue depth — this scales more precisely than CPU/memory because it reacts to actual work rather than resource pressure.
+
+Replicas are calculated as `ceil(queueDepth / threshold)`. Tune the threshold to match `workers.tasks` and your expected queue depth — a full discovery run can queue hundreds of jobs, so a value around 50 gives a gradual ramp without immediately pegging at maxReplicas:
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
@@ -161,7 +180,7 @@ spec:
         serverAddress: http://prometheus:9090
         metricName: netdisco_queued_jobs
         query: netdisco_jobs{status="queued",tenant="netdisco"}
-        threshold: "10"   # one replica per 10 queued jobs
+        threshold: "50"   # ceil(queueDepth/threshold) replicas — 200 jobs → 4 replicas
 ```
 
 ## See also
