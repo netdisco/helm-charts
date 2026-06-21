@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/component: scheduler
 spec:
   replicas: {{ .Values.scheduler.replicas }}
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       {{- include "netdisco.selectorLabels" . | nindent 6 }}

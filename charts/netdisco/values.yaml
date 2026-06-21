@@ -56,6 +56,13 @@ backend:
   replicas: 1
   env: []
   resources: {}
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPUUtilization: 80
+    targetMemoryUtilization: 80
+    scaleDownStabilizationSeconds: 300
 
 # scheduler: when enabled, a dedicated scheduler-only Deployment is created
 # (tasks=0, no pollers) and the backend Deployment gets NETDISCO_NO_SCHEDULER=1
