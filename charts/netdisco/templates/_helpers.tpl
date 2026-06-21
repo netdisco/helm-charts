@@ -95,6 +95,10 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
 vault.hashicorp.com/agent-inject: "true"
 vault.hashicorp.com/role: {{ .Values.vault.role | quote }}
 vault.hashicorp.com/agent-init-first: "true"
+vault.hashicorp.com/agent-limits-cpu: "100m"
+vault.hashicorp.com/agent-limits-mem: "128Mi"
+vault.hashicorp.com/agent-requests-cpu: "10m"
+vault.hashicorp.com/agent-requests-mem: "64Mi"
 vault.hashicorp.com/agent-inject-secret-db-credentials: {{ .Values.vault.dbPath | quote }}
 vault.hashicorp.com/agent-inject-template-db-credentials: |
   {{`{{- with secret `}}"{{ .Values.vault.dbPath }}"{{` -}}`}}

@@ -113,6 +113,76 @@ Vault/ESO Secret (creds) ────┘
 
 Vault Agent injects DB credentials; ESO syncs SNMP `device_auth` from Vault KV into a k8s Secret.
 
+## Scheduler / worker split for horizontal scaling
+
+By default the backend Deployment runs all three roles in one process: Scheduler (submits jobs on cron), Manager (pulls from PostgreSQL queue), and Poller (executes discovery jobs). Running multiple replicas is unsafe in this mode because every replica's Scheduler submits duplicate jobs every minute.
+
+Enable `scheduler.enabled=true` to split them:
+
+- A dedicated **scheduler** Deployment (1 replica, no pollers) is created
+- The **backend** Deployment receives `NETDISCO_NO_SCHEDULER=1` and can now safely scale to N replicas
+
+```yaml
+scheduler:
+  enabled: true
+  replicas: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 1Gi
+
+backend:
+  replicas: 2   # safe to scale now
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+```
+
+Requires `NETDISCO_NO_SCHEDULER` and `NETDISCO_WORKERS_TASKS` env var support in the netdisco backend binary (available from the `feature-combined` image tag onwards).
+
+### CPU / memory autoscaling (built-in HPA)
+
+Enable the built-in `autoscaling/v2` HPA to scale the backend on CPU and memory:
+
+```yaml
+backend:
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilization: 80       # % of requested CPU
+    targetMemoryUtilization: 80    # % of requested memory
+    scaleDownStabilizationSeconds: 300  # avoid killing pods mid-job
+```
+
+When `hpa.enabled=true` the `replicas` field is omitted from the Deployment so the HPA has sole ownership of the replica count.
+
+### Autoscaling with KEDA (queue-depth)
+
+Netdisco exposes `netdisco_jobs{status="queued"}` on the web pod's `/metrics` endpoint. If [KEDA](https://keda.sh) is installed and Prometheus is scraping the web pod, you can drive autoscaling directly from queue depth — this scales more precisely than CPU/memory because it reacts to actual work rather than resource pressure.
+
+Replicas are calculated as `ceil(queueDepth / threshold)`. Tune the threshold to match `workers.tasks` and your expected queue depth — a full discovery run can queue hundreds of jobs, so a value around 50 gives a gradual ramp without immediately pegging at maxReplicas:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: netdisco-backend
+spec:
+  scaleTargetRef:
+    name: netdisco-backend
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: netdisco_queued_jobs
+        query: netdisco_jobs{status="queued",tenant="netdisco"}
+        threshold: "50"   # ceil(queueDepth/threshold) replicas — 200 jobs → 4 replicas
+```
+
 ## See also
 
 - [netdisco/netdisco](https://github.com/netdisco/netdisco) — the main application
