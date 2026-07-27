@@ -33,13 +33,19 @@ postgresql:
 netdisco:
   domain: discover
   # Additional raw config appended to deployment.yml.
-  # Use this for device_auth, schedule overrides, metrics settings, etc.
+  # Use this for device_auth, metrics settings, etc.
   extraConfig: |
     logger: console
     #device_auth:
     #  - tag: default_v2_readonly
     #    community: public
     #    read: true
+  # Overrides for netdisco's cron schedule (discoverall, macwalk, arpwalk,
+  # nbtwalk, expire, ...). See deployment.yml.example / the netdisco wiki
+  # for available jobs. Example:
+  #   discoverall:
+  #     when: '5 1 * * *'
+  schedule: {}
 
 web:
   replicas: 1
