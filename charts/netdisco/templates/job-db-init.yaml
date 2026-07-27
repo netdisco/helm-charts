@@ -6,7 +6,7 @@ metadata:
     {{- include "netdisco.labels" . | nindent 4 }}
   annotations:
     # Run on every helm upgrade too
-    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
