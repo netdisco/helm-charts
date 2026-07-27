@@ -51,11 +51,19 @@ web:
   #    memory: 256Mi
   #  limits:
   #    memory: 512Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
 
 backend:
   replicas: 1
   env: []
   resources: {}
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+  topologySpreadConstraints: [ ]
   hpa:
     enabled: false
     minReplicas: 1
@@ -72,6 +80,10 @@ scheduler:
   replicas: 1
   env: []
   resources: {}
+  nodeSelector: { }
+  tolerations: [ ]
+  affinity: { }
+  topologySpreadConstraints: [ ]
 
 # -- One-shot db init/migration Job (post-install/post-upgrade hook).
 # Runs netdisco-updatedb.sh against the configured database. Migrations
@@ -121,10 +133,6 @@ openshift: false
 serviceAccount:
   create: true
   name: ""
-
-nodeSelector: {}
-tolerations: []
-affinity: {}
 
 # -- Vault Agent Injector for DB credentials
 # Requires the Vault Agent Injector to be installed in the cluster.
