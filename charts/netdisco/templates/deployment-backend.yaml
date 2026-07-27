@@ -40,6 +40,10 @@ spec:
             - name: NETDISCO_NO_SCHEDULER
               value: "1"
             {{- end }}
+            {{- if .Values.backend.backendName }}
+            - name: NETDISCO_BACKEND_NAME
+              value: {{ .Values.backend.backendName | quote }}
+            {{- end }}
             {{- with .Values.backend.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

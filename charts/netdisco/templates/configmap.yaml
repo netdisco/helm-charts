@@ -17,3 +17,8 @@ data:
     {{- if .Values.netdisco.extraConfig }}
     {{ .Values.netdisco.extraConfig | nindent 4 }}
     {{- end }}
+
+    {{- if .Values.netdisco.schedule }}
+    schedule:
+      {{- toYaml .Values.netdisco.schedule | nindent 6 }}
+    {{- end }}
