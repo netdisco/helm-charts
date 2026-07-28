@@ -183,6 +183,27 @@ spec:
         threshold: "50"   # ceil(queueDepth/threshold) replicas — 200 jobs → 4 replicas
 ```
 
+## Argo CD note: db-init hook timing
+
+The db-init Job defaults to `helm.sh/hook: post-install,pre-upgrade` — a fresh
+install waits until the chart's own ServiceAccount/ConfigMap/Secret exist,
+while every later upgrade migrates the schema before new pods roll out. This
+relies on Helm CLI's real distinction between install and upgrade.
+
+Argo CD maps both `pre-install` and `pre-upgrade` onto the same `PreSync`
+phase and can't tell an install from an upgrade — every operation is a
+"sync". So under Argo CD this hook combination also fires as `PreSync` on a
+fresh sync, before those resources exist, and can fail the same way 0.5.0
+did. If you deploy via Argo CD, override the annotation to force single,
+always-safe `PostSync` timing instead (an explicit Argo CD hook annotation
+takes priority over `helm.sh/hook`):
+
+```yaml
+dbInit:
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+```
+
 ## See also
 
 - [netdisco/netdisco](https://github.com/netdisco/netdisco) — the main application

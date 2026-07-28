@@ -9,9 +9,20 @@ metadata:
     # ConfigMap/Secret don't exist yet, so this must wait until after they're
     # created. pre-upgrade: on every subsequent upgrade those already exist
     # from the prior install, so migrate the schema before new pods roll out.
+    #
+    # Argo CD note: Argo CD maps both pre-install and pre-upgrade onto the
+    # same PreSync phase and cannot tell an install from an upgrade, so this
+    # combination isn't expressible there - it would fire as PreSync on a
+    # fresh sync too, before those resources exist. Set dbInit.annotations
+    # with an explicit "argocd.argoproj.io/hook: PostSync" (which takes
+    # priority over helm.sh/hook) to get single, always-safe PostSync timing
+    # under Argo CD instead.
     "helm.sh/hook": post-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation
+    {{- with .Values.dbInit.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: 5
   template:

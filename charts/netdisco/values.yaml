@@ -92,11 +92,19 @@ scheduler:
   affinity: {}
   topologySpreadConstraints: []
 
-# -- One-shot db init/migration Job (post-install/post-upgrade hook).
-# Runs netdisco-updatedb.sh against the configured database. Migrations
-# can be memory-hungry, so tune separately from the steady-state backend.
+# -- One-shot db init/migration Job (post-install,pre-upgrade hook by
+# default). Runs netdisco-updatedb.sh against the configured database.
+# Migrations can be memory-hungry, so tune separately from the steady-state
+# backend.
 dbInit:
   resources: {}
+  # Extra annotations merged onto the Job. On Argo CD, set:
+  #   annotations:
+  #     argocd.argoproj.io/hook: PostSync
+  # to force single, always-safe PostSync timing instead of the chart's
+  # default post-install,pre-upgrade helm.sh/hook (which Argo CD can't
+  # evaluate correctly - see the comment in templates/job-db-init.yaml).
+  annotations: {}
 
 # -- OpenShift Route (use this on RHOS)
 route:
