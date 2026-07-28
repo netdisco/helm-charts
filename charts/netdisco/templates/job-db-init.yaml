@@ -5,8 +5,11 @@ metadata:
   labels:
     {{- include "netdisco.labels" . | nindent 4 }}
   annotations:
-    # Run on every helm upgrade too
-    "helm.sh/hook": post-install,post-upgrade
+    # post-install: on a fresh install the chart's own ServiceAccount/
+    # ConfigMap/Secret don't exist yet, so this must wait until after they're
+    # created. pre-upgrade: on every subsequent upgrade those already exist
+    # from the prior install, so migrate the schema before new pods roll out.
+    "helm.sh/hook": post-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
