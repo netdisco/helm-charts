@@ -32,7 +32,7 @@ spec:
         app.kubernetes.io/component: db-init
       annotations:
         {{- include "netdisco.vaultAnnotations" . | nindent 8 }}
-        {{- if .Values.vault.enabled }}
+        {{- if and .Values.vault.enabled (not .Values.vault.prePopulateOnly) }}
         vault.hashicorp.com/agent-pre-populate-only: "true"
         {{- end }}
     spec:

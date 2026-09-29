@@ -95,6 +95,9 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
 vault.hashicorp.com/agent-inject: "true"
 vault.hashicorp.com/role: {{ .Values.vault.role | quote }}
 vault.hashicorp.com/agent-init-first: "true"
+{{- if .Values.vault.prePopulateOnly }}
+vault.hashicorp.com/agent-pre-populate-only: "true"
+{{- end }}
 vault.hashicorp.com/agent-limits-cpu: "100m"
 vault.hashicorp.com/agent-limits-mem: "128Mi"
 vault.hashicorp.com/agent-requests-cpu: "10m"
