@@ -121,6 +121,12 @@ dbInit:
   # default post-install,pre-upgrade helm.sh/hook (which Argo CD can't
   # evaluate correctly - see the comment in templates/job-db-init.yaml).
   annotations: {}
+  # Recovery options for the schema upgrade, passed as NETDISCO_DB_DEPLOY_ARGS
+  # (for example "--force-step 57" or "--redeploy-all"). Set only when a failed
+  # upgrade's log names the value to use, and remove it once the upgrade succeeds
+  # (a leftover --redeploy-all replays every step on every helm upgrade; a
+  # leftover --force-step only warns).
+  deployArgs: ""
 
 # -- OpenShift Route (use this on RHOS)
 route:

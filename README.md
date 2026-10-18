@@ -204,6 +204,21 @@ dbInit:
     argocd.argoproj.io/hook: PostSync
 ```
 
+## Recovering a failed schema upgrade
+
+If the db-init Job fails, its log names the recovery option to use. Pass it
+with `dbInit.deployArgs` (set as `NETDISCO_DB_DEPLOY_ARGS` on the Job), then
+upgrade again:
+
+```yaml
+dbInit:
+  deployArgs: "--force-step 57"
+```
+
+Remove the value after the upgrade succeeds: a leftover `--redeploy-all`
+replays every step on every `helm upgrade`, and a leftover `--force-step`
+only warns.
+
 ## See also
 
 - [netdisco/netdisco](https://github.com/netdisco/netdisco) — the main application
