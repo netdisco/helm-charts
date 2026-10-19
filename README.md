@@ -206,9 +206,16 @@ dbInit:
 
 ## Recovering a failed schema upgrade
 
-If the db-init Job fails, its log names the recovery option to use. Pass it
-with `dbInit.deployArgs` (set as `NETDISCO_DB_DEPLOY_ARGS` on the Job), then
-upgrade again:
+If the db-init Job fails, its log names the recovery option to use. A
+`helm upgrade` that times out here usually means the schema upgrade stopped,
+since the Job keeps retrying the failed step. Read the log with:
+
+```sh
+kubectl logs job/<release>-db-init
+```
+
+Pass the option with `dbInit.deployArgs` (set as `NETDISCO_DB_DEPLOY_ARGS` on
+the Job), then upgrade again:
 
 ```yaml
 dbInit:
