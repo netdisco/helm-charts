@@ -56,6 +56,10 @@ spec:
             {{- with .Values.backend.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- with .Values.dbInit.deployArgs }}
+            - name: NETDISCO_DB_DEPLOY_ARGS
+              value: {{ . | quote }}
+            {{- end }}
           volumeMounts:
             {{- include "netdisco.volumeMounts" . | nindent 12 }}
           resources:
