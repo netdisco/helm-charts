@@ -222,6 +222,9 @@ eso:
   refreshInterval: 1h
   # Vault KV v2 path containing SNMP credential keys
   vaultPath: "secret/data/netdisco/snmp"
+  # -- More KV paths in the same store, e.g. CLI or API credentials kept apart
+  # from SNMP. All keys land in one template context, so keep them unique.
+  extraVaultPaths: []
   # Template rendered into device_auth.yml inside the k8s Secret.
   # Reference Vault keys with {{ .keyname }} notation.
   # See: https://external-secrets.io/latest/guides/templating/
