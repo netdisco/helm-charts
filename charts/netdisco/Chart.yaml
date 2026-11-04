@@ -2,7 +2,7 @@ apiVersion: v2
 name: netdisco
 description: Netdisco - Open Source Network Management
 type: application
-version: 0.5.5
+version: 0.5.6
 appVersion: "latest"
 keywords:
   - netdisco

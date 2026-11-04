@@ -69,6 +69,8 @@ helm install netdisco ./charts/netdisco \
 
 Edit `values-vault-eso.yaml` to set your Vault KV paths and adjust the `deviceAuthTemplate` to match your SNMP credential structure.
 
+Credentials that aren't SNMP (CLI or API logins for `device_auth`) can live in their own KV paths: list them in `eso.extraVaultPaths` and they are read from the same store, with all keys available to `deviceAuthTemplate`. Keep key names unique across paths.
+
 By default Vault Agent injects only the DB password and `db.host`/`db.user`/`db.name` are taken from values. If your Vault binding returns the full connection payload (host/port/database/user/password as JSON), set `vault.fullCredentials=true` to render the entire `database:` block from Vault and skip the static fields:
 
 ```bash
