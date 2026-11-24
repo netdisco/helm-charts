@@ -58,11 +58,29 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
 {{- or .Values.vault.enabled .Values.eso.enabled }}
 {{- end }}
 
-{{/* Common env vars — DB connection from Secret/values unless Vault injects it.
+{{/* Common env vars, called with (dict "root" $ "userEnv" <workload env list>).
+     DB connection from Secret/values unless Vault injects it.
      In fullCredentials mode, NETDISCO_DB_* are omitted entirely; netdisco
      reads the connection from deployment.yml after the merge init container
      concatenates the Vault-rendered block. */}}
 {{- define "netdisco.env" -}}
+{{- $userNames := list }}
+{{- range .userEnv }}{{ $userNames = append $userNames .name }}{{ end }}
+{{- with .root }}
+{{- /* OpenShift runs pods under an arbitrary UID without a passwd entry, so
+       HOME is "/" and Net::OpenSSH (CLI arpnip/macsuck) cannot create its
+       ctl_dir, nor ssh its ~/.ssh. Its strict_mode rejects group/world-writable
+       dirs without the sticky bit (such as the tmp emptyDir), so HOME is the
+       image's root-owned sticky /tmp. NETDISCO_HOME keeps netdisco's own home.
+       A workload's own env entry wins. */}}
+{{- if not (has "NETDISCO_HOME" $userNames) }}
+- name: NETDISCO_HOME
+  value: /home/netdisco
+{{- end }}
+{{- if not (has "HOME" $userNames) }}
+- name: HOME
+  value: /tmp
+{{- end }}
 - name: NETDISCO_DOMAIN
   value: {{ .Values.netdisco.domain | quote }}
 {{- if not (eq (include "netdisco.vaultFullCredentials" .) "true") }}
@@ -85,6 +103,7 @@ fsGroup: {{ .Values.securityContext.fsGroup }}
     secretKeyRef:
       name: {{ if .Values.db.existingSecret }}{{ .Values.db.existingSecret }}{{ else }}{{ include "netdisco.fullname" . }}-db{{ end }}
       key: db-password
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -35,7 +35,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-backend"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            {{- include "netdisco.env" . | nindent 12 }}
+            {{- include "netdisco.env" (dict "root" . "userEnv" .Values.backend.env) | nindent 12 }}
             {{- if .Values.scheduler.enabled }}
             - name: NETDISCO_NO_SCHEDULER
               value: "1"
