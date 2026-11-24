@@ -81,6 +81,10 @@ web:
 backend:
   replicas: 1
   backendName: ""  # shared DeviceSkip identity across replicas; recommended when hpa.enabled
+  # Extra env, appended to the chart's. The chart sets NETDISCO_HOME=/home/netdisco and
+  # HOME=/tmp (root-owned sticky, as Net::OpenSSH requires; not the tmp emptyDir). With
+  # readOnlyRootFilesystem, point HOME at your own sticky or 0700 dir. Same name here wins.
+  # Also used by the db-init job.
   env: []
   resources: {}
   nodeSelector: {}

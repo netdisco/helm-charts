@@ -57,6 +57,8 @@ helm install netdisco ./charts/netdisco \
   --set route.host=netdisco.apps.mycluster.example.com
 ```
 
+The arbitrary UID has no passwd entry, so `HOME` would be `/`. Every Netdisco container gets `NETDISCO_HOME=/home/netdisco` and `HOME=/tmp`, which SSH collectors need for their control directory and `~/.ssh`. Net::OpenSSH refuses a HOME path that is group/world-writable without the sticky bit, so HOME must be a root-owned sticky dir such as the image's `/tmp`, not the `/home/netdisco/tmp` emptyDir. With `readOnlyRootFilesystem`, mount your own dir with the sticky bit or mode 0700 and point `HOME` at it. An entry with the same name in `web.env`, `backend.env` or `scheduler.env` replaces the chart's.
+
 ## With Vault Agent (DB) + ESO (SNMP credentials)
 
 ```bash

@@ -37,7 +37,7 @@ spec:
               containerPort: {{ .Values.web.port }}
               protocol: TCP
           env:
-            {{- include "netdisco.env" . | nindent 12 }}
+            {{- include "netdisco.env" (dict "root" . "userEnv" .Values.web.env) | nindent 12 }}
             - name: PORT
               value: {{ .Values.web.port | quote }}
             {{- with .Values.web.env }}

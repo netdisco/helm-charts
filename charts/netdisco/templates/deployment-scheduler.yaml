@@ -34,7 +34,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-backend"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            {{- include "netdisco.env" . | nindent 12 }}
+            {{- include "netdisco.env" (dict "root" . "userEnv" .Values.scheduler.env) | nindent 12 }}
             - name: NETDISCO_WORKERS_TASKS
               value: "0"
             {{- with .Values.scheduler.env }}
